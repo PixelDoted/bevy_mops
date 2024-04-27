@@ -11,16 +11,15 @@ pub fn slice(slicee: &mut GIMesh, slicer: &GIMesh) {
             slicer.vertex(slicer_indices[2].0),
         ];
 
-        let plane_normal = (slicer_verts[1].pos - slicer_verts[0].pos)
-            .cross(slicer_verts[2].pos - slicer_verts[0].pos)
-            .normalize();
+        let plane_normal =
+            (slicer_verts[0].normal + slicer_verts[1].normal + slicer_verts[2].normal) / 3.0;
         let plane_center = (slicer_verts[0].pos + slicer_verts[1].pos + slicer_verts[2].pos) / 3.0;
         let plane = Plane::new(plane_normal, -plane_normal.dot(plane_center));
 
         let slicer_radius = slicer_verts[0].pos.distance(plane_center);
 
-        for i in 0..slicee.tri_count() {
-            let indices = slicee.tri(i);
+        for t in 0..slicee.tri_count() {
+            let indices = slicee.tri(t);
             let verts = [
                 slicee.vertex(indices[0].0),
                 slicee.vertex(indices[1].0),

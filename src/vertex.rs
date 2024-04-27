@@ -1,6 +1,9 @@
+use std::hash::Hasher;
+
 use bevy::{
     math::{U16Vec4, Vec3A},
     prelude::*,
+    utils::AHasher,
 };
 
 /// Contains all the Vertex data from a [`Mesh`]
@@ -43,5 +46,50 @@ impl Vertex {
         }
 
         // NOTE: [`joint_index`] can't be interpolated
+    }
+}
+
+impl std::hash::Hash for Vertex {
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
+        hasher.write_u32(self.pos.x.to_bits());
+        hasher.write_u32(self.pos.y.to_bits());
+        hasher.write_u32(self.pos.z.to_bits());
+
+        hasher.write_u32(self.normal.x.to_bits());
+        hasher.write_u32(self.normal.y.to_bits());
+        hasher.write_u32(self.normal.z.to_bits());
+
+        let uv0 = self.uv0.unwrap_or(Vec2::ZERO);
+        let uv1 = self.uv1.unwrap_or(Vec2::ZERO);
+        let tangent = self.tangent.unwrap_or(Vec4::ZERO);
+        let color = self.color.unwrap_or(Vec4::ZERO);
+        let joint_weight = self.joint_weight.unwrap_or(Vec4::ZERO);
+        let joint_index = self.joint_index.unwrap_or(U16Vec4::ZERO);
+
+        hasher.write_u32(uv0.x.to_bits());
+        hasher.write_u32(uv0.y.to_bits());
+
+        hasher.write_u32(uv1.x.to_bits());
+        hasher.write_u32(uv1.y.to_bits());
+
+        hasher.write_u32(tangent.x.to_bits());
+        hasher.write_u32(tangent.y.to_bits());
+        hasher.write_u32(tangent.z.to_bits());
+        hasher.write_u32(tangent.w.to_bits());
+
+        hasher.write_u32(color.x.to_bits());
+        hasher.write_u32(color.y.to_bits());
+        hasher.write_u32(color.z.to_bits());
+        hasher.write_u32(color.w.to_bits());
+
+        hasher.write_u32(joint_weight.x.to_bits());
+        hasher.write_u32(joint_weight.y.to_bits());
+        hasher.write_u32(joint_weight.z.to_bits());
+        hasher.write_u32(joint_weight.w.to_bits());
+
+        hasher.write_u16(joint_index.x);
+        hasher.write_u16(joint_index.y);
+        hasher.write_u16(joint_index.z);
+        hasher.write_u16(joint_index.w);
     }
 }

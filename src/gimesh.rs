@@ -11,9 +11,13 @@ use bevy::{
 /// A Globally positioned index mesh
 #[derive(Clone)]
 pub struct GIMesh {
-    indices: Vec<u32>,
-    vertices: Vec<Vertex>,
-    inverse_model: Affine3A,
+    /// See [`add_index`], [`set_index`], [`index`] and [`index_count`]
+    pub indices: Vec<u32>,
+
+    /// See [`add_vertex`], [`set_vertex`], [`vertex`] and [`vertex_count`]
+    pub vertices: Vec<Vertex>,
+
+    pub inverse_model: Affine3A,
 }
 
 impl GIMesh {
@@ -50,6 +54,10 @@ impl GIMesh {
     /// Gets the vertex at `index`
     pub fn vertex(&self, index: u32) -> &Vertex {
         &self.vertices[index as usize]
+    }
+
+    pub fn vertex_count(&self) -> usize {
+        self.vertices.len()
     }
 
     pub fn add_index(&mut self, index: u32) {
