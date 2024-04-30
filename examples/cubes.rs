@@ -9,7 +9,7 @@ fn main() {
     let mut app = App::new();
     app.add_plugins((DefaultPlugins, PanOrbitCameraPlugin, WireframePlugin));
     app.add_systems(Startup, setup)
-        .add_systems(Update, (show_slice_gizmos, rotate_slicer).chain());
+        .add_systems(Update, (show_slice_gizmos, rotate_mesh_b).chain());
     app.run();
 }
 
@@ -75,7 +75,7 @@ fn setup(
             ..default()
         }),
         SpatialBundle {
-            transform: Transform::from_xyz(-0.75, 2.0, 0.0),
+            transform: Transform::from_xyz(0.75, 2.0, 0.0),
             ..default()
         },
         Wireframe,
@@ -89,7 +89,7 @@ fn setup(
             ..default()
         }),
         SpatialBundle {
-            transform: Transform::from_xyz(0.75, 2.0, 0.0),
+            transform: Transform::from_xyz(-0.75, 2.0, 0.0),
             ..default()
         },
         Wireframe,
@@ -97,7 +97,7 @@ fn setup(
     ));
 }
 
-fn rotate_slicer(time: Res<Time>, mut query: Query<&mut Transform, With<SliceB>>) {
+fn rotate_mesh_b(time: Res<Time>, mut query: Query<&mut Transform, With<SliceB>>) {
     for mut transform in query.iter_mut() {
         let dt = time.delta_seconds() * 0.1;
         transform.rotate_x(dt);
