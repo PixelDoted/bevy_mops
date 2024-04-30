@@ -8,10 +8,14 @@ use bevy_panorbit_camera::*;
 fn main() {
     let mut app = App::new();
     app.add_plugins((DefaultPlugins, PanOrbitCameraPlugin, WireframePlugin));
+    app.insert_resource(IsRunning(true));
     app.add_systems(Startup, setup)
-        .add_systems(Update, (show_slice_gizmos, rotate_mesh_b).chain());
+        .add_systems(Update, (controls, show_slice_gizmos, rotate_mesh_b).chain());
     app.run();
 }
+
+#[derive(Resource)]
+pub struct IsRunning(pub bool);
 
 #[derive(Component)]
 pub struct SliceA;
@@ -97,7 +101,21 @@ fn setup(
     ));
 }
 
-fn rotate_mesh_b(time: Res<Time>, mut query: Query<&mut Transform, With<SliceB>>) {
+fn controls(keys: Res<ButtonInput<KeyCode>>, mut is_running: ResMut<IsRunning>) {
+    if keys.just_pressed(KeyCode::Space) {
+        is_running.0 = !is_running.0;
+    }
+}
+
+fn rotate_mesh_b(
+    time: Res<Time>,
+    is_running: Res<IsRunning>,
+    mut query: Query<&mut Transform, With<SliceB>>,
+) {
+    if !is_running.0 {
+        return;
+    }
+
     for mut transform in query.iter_mut() {
         let dt = time.delta_seconds() * 0.1;
         transform.rotate_x(dt);
@@ -107,6 +125,7 @@ fn rotate_mesh_b(time: Res<Time>, mut query: Query<&mut Transform, With<SliceB>>
 }
 
 fn show_slice_gizmos(
+    is_running: Res<IsRunning>,
     query: Query<(&GlobalTransform, &Handle<Mesh>)>,
     a_query: Query<Entity, With<SliceA>>,
     b_query: Query<Entity, With<SliceB>>,
@@ -114,6 +133,10 @@ fn show_slice_gizmos(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
+    if !is_running.0 {
+        return;
+    }
+
     let instant = std::time::Instant::now();
 
     let (a_transform, a_handle) = query.get(a_query.single()).unwrap();

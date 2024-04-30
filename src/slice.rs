@@ -17,7 +17,15 @@ pub fn slice(slicee: &mut GIMesh, slicer: &GIMesh) {
         let plane_center = (slicer_verts[0].pos + slicer_verts[1].pos + slicer_verts[2].pos) / 3.0;
         let plane = Plane::new(plane_normal, -plane_normal.dot(plane_center));
 
-        let slicer_radius = slicer_verts[0].pos.distance(plane_center);
+        // Find the minimum and maximum x, y and z values for AABB
+        let slicer_min = slicer_verts[0]
+            .pos
+            .min(slicer_verts[1].pos)
+            .min(slicer_verts[2].pos);
+        let slicer_max = slicer_verts[0]
+            .pos
+            .max(slicer_verts[1].pos)
+            .max(slicer_verts[2].pos);
 
         for t in 0..slicee.tri_count() {
             let indices = slicee.tri(t);
@@ -27,13 +35,20 @@ pub fn slice(slicee: &mut GIMesh, slicer: &GIMesh) {
                 slicee.vertex(indices[2].0),
             ];
 
-            let other_center = (verts[0].pos + verts[1].pos + verts[2].pos) / 3.0;
-            let other_radius = verts[0].pos.distance(other_center);
-            if other_center.distance(plane_center) > other_radius + slicer_radius {
-                continue;
-            }
+            // Find the minimum and maximum x, y and z values for AABB
+            let min = verts[0].pos.min(verts[1].pos).min(verts[2].pos);
+            let max = verts[0].pos.max(verts[1].pos).max(verts[2].pos);
 
-            slice_triangle(&plane, slicee, indices);
+            // Perform an AABB Check
+            if min.x <= slicer_max.x
+                && max.x >= slicer_min.x
+                && min.y <= slicer_max.y
+                && max.y >= slicer_min.y
+                && min.z <= slicer_max.z
+                && max.z >= slicer_min.z
+            {
+                slice_triangle(&plane, slicee, indices);
+            }
         }
     }
 }
@@ -96,8 +111,8 @@ fn slice_triangle(plane: &Plane, mesh: &mut GIMesh, indices: [(u32, usize); 3]) 
             below.push(SliceVertex::Index(indices[i].0));
         }
 
-        if (sides[j] > f32::EPSILON && sides[i] < -f32::EPSILON)
-            || (sides[i] > f32::EPSILON && sides[j] < -f32::EPSILON)
+        if (sides[j] >= f32::EPSILON && sides[i] <= -f32::EPSILON)
+            || (sides[i] >= f32::EPSILON && sides[j] <= -f32::EPSILON)
         {
             let vj = mesh.vertex(indices[j].0);
             let vi = mesh.vertex(indices[i].0);
