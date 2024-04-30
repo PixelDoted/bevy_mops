@@ -1,9 +1,10 @@
-use bevy::utils::{HashMap, HashSet};
-
 use crate::GIMesh;
 
 pub struct MergeSettings {
+    /// Merge distance between vertices
     pub merge_distance: f32,
+
+    /// If `true` b's normals are inverted when added
     pub invert_b_normals: bool,
 }
 
@@ -17,8 +18,6 @@ impl Default for MergeSettings {
 }
 
 /// Merges `b` into `a`
-///
-/// [`distance`] is the merge distance between vertices
 pub fn merge_meshes(a: &mut GIMesh, b: &GIMesh, settings: &MergeSettings) {
     let distance = settings.merge_distance * settings.merge_distance;
 

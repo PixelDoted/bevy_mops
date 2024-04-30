@@ -1,4 +1,4 @@
-use crate::vertex::Vertex;
+use crate::{error::ConvertError, vertex::Vertex};
 use bevy::{
     math::Affine3A,
     prelude::*,
@@ -8,7 +8,7 @@ use bevy::{
     },
 };
 
-/// A Globally positioned index mesh
+/// A Globally-positioned Index Mesh
 #[derive(Clone)]
 pub struct GIMesh {
     /// See [`add_index`], [`set_index`], [`index`] and [`index_count`]
@@ -80,9 +80,14 @@ impl GIMesh {
 
 // Conversion
 impl GIMesh {
-    pub fn from_mesh(mesh: &Mesh, model: Affine3A) -> Option<Self> {
-        let positions = mesh.attribute(Mesh::ATTRIBUTE_POSITION)?;
-        let normals = mesh.attribute(Mesh::ATTRIBUTE_NORMAL)?;
+    /// from [`bevy::prelude::Mesh`] to [`GIMesh`]
+    pub fn from_mesh(mesh: &Mesh, model: Affine3A) -> Result<Self, ConvertError> {
+        let positions = mesh
+            .attribute(Mesh::ATTRIBUTE_POSITION)
+            .ok_or(ConvertError::NoVertices)?;
+        let normals = mesh
+            .attribute(Mesh::ATTRIBUTE_NORMAL)
+            .ok_or(ConvertError::NoNormals)?;
         let uvs_0 = mesh.attribute(Mesh::ATTRIBUTE_UV_0);
         let uvs_1 = mesh.attribute(Mesh::ATTRIBUTE_UV_1);
         let tangents = mesh.attribute(Mesh::ATTRIBUTE_TANGENT);
@@ -91,7 +96,7 @@ impl GIMesh {
         let joint_indices = mesh.attribute(Mesh::ATTRIBUTE_JOINT_INDEX);
 
         let mut output = Self {
-            indices: match mesh.indices()? {
+            indices: match mesh.indices().ok_or(ConvertError::NoIndices)? {
                 Indices::U16(v) => v.iter().map(|v| *v as u32).collect(),
                 Indices::U32(v) => v.clone(),
             },
@@ -103,11 +108,11 @@ impl GIMesh {
             let vertex = Vertex {
                 pos: match positions {
                     VertexAttributeValues::Float32x3(v) => model.transform_point3a(v[i].into()),
-                    _ => return None,
+                    _ => return Err(ConvertError::VertexInvalidFormat),
                 },
                 normal: match normals {
                     VertexAttributeValues::Float32x3(v) => model.transform_vector3a(v[i].into()),
-                    _ => return None,
+                    _ => return Err(ConvertError::NormalInvalidFormat),
                 },
                 uv0: match uvs_0 {
                     Some(VertexAttributeValues::Float32x2(v)) => Some(v[i].into()),
@@ -138,12 +143,16 @@ impl GIMesh {
             output.vertices.push(vertex);
         }
 
-        Some(output)
+        Ok(output)
     }
 
-    pub fn to_mesh(self) -> Option<Mesh> {
-        if self.indices.is_empty() || self.vertices.is_empty() {
-            return None;
+    /// to [`bevy::prelude::Mesh`] to [`GIMesh`]
+    pub fn to_mesh(self) -> Result<Mesh, ConvertError> {
+        if self.indices.is_empty() {
+            return Err(ConvertError::NoIndices);
+        }
+        if self.vertices.is_empty() {
+            return Err(ConvertError::NoVertices);
         }
 
         let indices = Indices::U32(self.indices);
@@ -181,22 +190,34 @@ impl GIMesh {
             normals.push(self.inverse_model.transform_vector3a(v.pos).into());
 
             if let Some(values) = &mut uvs0 {
-                values.push(v.uv0?.into());
+                values.push(v.uv0.ok_or(ConvertError::VertexMissingAttribute)?.into());
             }
             if let Some(values) = &mut uvs1 {
-                values.push(v.uv1?.into());
+                values.push(v.uv1.ok_or(ConvertError::VertexMissingAttribute)?.into());
             }
             if let Some(values) = &mut tangents {
-                values.push(v.tangent?.into());
+                values.push(
+                    v.tangent
+                        .ok_or(ConvertError::VertexMissingAttribute)?
+                        .into(),
+                );
             }
             if let Some(values) = &mut colors {
-                values.push(v.color?.into());
+                values.push(v.color.ok_or(ConvertError::VertexMissingAttribute)?.into());
             }
             if let Some(values) = &mut joint_weights {
-                values.push(v.joint_weight?.into());
+                values.push(
+                    v.joint_weight
+                        .ok_or(ConvertError::VertexMissingAttribute)?
+                        .into(),
+                );
             }
             if let Some(values) = &mut joint_indices {
-                values.push(v.joint_index?.into());
+                values.push(
+                    v.joint_index
+                        .ok_or(ConvertError::VertexMissingAttribute)?
+                        .into(),
+                );
             }
         }
 
@@ -227,6 +248,6 @@ impl GIMesh {
             );
         }
 
-        Some(mesh)
+        Ok(mesh)
     }
 }

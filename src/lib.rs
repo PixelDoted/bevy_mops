@@ -1,3 +1,4 @@
+mod error;
 mod gimesh;
 mod merge;
 mod seperate;

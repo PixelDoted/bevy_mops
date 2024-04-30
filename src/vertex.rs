@@ -3,7 +3,6 @@ use std::hash::Hasher;
 use bevy::{
     math::{U16Vec4, Vec3A},
     prelude::*,
-    utils::AHasher,
 };
 
 /// Contains all the Vertex data from a [`Mesh`]

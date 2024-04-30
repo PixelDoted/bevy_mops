@@ -2,6 +2,7 @@ use bevy::{math::Vec3A, prelude::*};
 
 use crate::{gimesh::GIMesh, vertex::Vertex};
 
+/// Slices `slicee` triangles that are intersecting `slicer` triangles
 pub fn slice(slicee: &mut GIMesh, slicer: &GIMesh) {
     for slicer_i in 0..slicer.tri_count() {
         let slicer_indices = slicer.tri(slicer_i);
@@ -116,7 +117,7 @@ fn slice_triangle(plane: &Plane, mesh: &mut GIMesh, indices: [(u32, usize); 3]) 
 }
 
 fn add_vertices_to_mesh(
-    vertices: &mut Vec<SliceVertex>,
+    vertices: &mut [SliceVertex],
     mesh: &mut GIMesh,
     indices: &[(u32, usize); 3],
     original_used: &mut bool,

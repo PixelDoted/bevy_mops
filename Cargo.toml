@@ -2,13 +2,17 @@
 name = "bevy_mops"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["PixelDoted"]
+description = "Mesh Operations library for bevy"
+documentation = "https://docs.rs/bevy_mops"
+homepage = "https://github.com/PixelDoted/bevy_mops"
+license = "MIT"
 
 [dependencies]
 bevy = "0.13.2"
+
+[dev-dependencies]
 bevy_panorbit_camera = "0.17.0"
-bitflags = "2.5.0"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
