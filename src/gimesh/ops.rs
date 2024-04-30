@@ -19,4 +19,24 @@ impl GIMesh {
         crate::merge_meshes(self, other, settings);
         self
     }
+
+    /// Inverts the normals
+    pub fn invert_normals(&mut self) -> &mut Self {
+        for v in &mut self.vertices {
+            v.normal = -v.normal;
+        }
+
+        self
+    }
+
+    /// Flips the vertex windings
+    pub fn flip_windings(&mut self) -> &mut Self {
+        for t in 0..self.tri_count() {
+            let tri = self.tri(t);
+            self.set_index(tri[0].1, tri[2].0);
+            self.set_index(tri[2].1, tri[0].0);
+        }
+
+        self
+    }
 }

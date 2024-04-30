@@ -1,4 +1,4 @@
-use crate::GIMesh;
+use crate::{GIMesh, DEFAULT_VERTEX_MERGE_DISTANCE};
 
 pub struct MergeSettings {
     /// Merge distance between vertices
@@ -11,7 +11,7 @@ pub struct MergeSettings {
 impl Default for MergeSettings {
     fn default() -> Self {
         Self {
-            merge_distance: 0.0001,
+            merge_distance: DEFAULT_VERTEX_MERGE_DISTANCE,
             invert_b_normals: false,
         }
     }
