@@ -91,6 +91,9 @@ fn ray_triangle(ro: Vec3A, rv: Vec3A, tri: [&Vertex; 3]) -> bool {
 }
 
 pub struct SeperateOutput {
+    #[doc(alias = "intersection")]
     pub inside: GIMesh,
+
+    #[doc(alias = "difference")]
     pub outside: GIMesh,
 }

@@ -14,14 +14,14 @@ fn main() {
 }
 
 #[derive(Component)]
-pub struct Slicee;
+pub struct SliceA;
 
 #[derive(Component)]
-pub struct Slicer;
+pub struct SliceB;
 
 #[derive(Component)]
 pub struct Output {
-    inside: bool,
+    pub index: usize,
 }
 
 fn setup(
@@ -50,7 +50,7 @@ fn setup(
             transform: Transform::from_xyz(0.5, 0.0, 0.0),
             ..default()
         },
-        Slicee,
+        SliceA,
     ));
     commands.spawn((
         meshes.add(Cuboid::new(1.0, 1.0, 1.0)), //Plane3d::new(Vec3::Y)),
@@ -64,7 +64,7 @@ fn setup(
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..default()
         },
-        Slicer,
+        SliceB,
     ));
 
     commands.spawn((
@@ -79,7 +79,7 @@ fn setup(
             ..default()
         },
         Wireframe,
-        Output { inside: false },
+        Output { index: 0 },
     ));
     commands.spawn((
         meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
@@ -93,11 +93,11 @@ fn setup(
             ..default()
         },
         Wireframe,
-        Output { inside: true },
+        Output { index: 1 },
     ));
 }
 
-fn rotate_slicer(time: Res<Time>, mut query: Query<&mut Transform, With<Slicer>>) {
+fn rotate_slicer(time: Res<Time>, mut query: Query<&mut Transform, With<SliceB>>) {
     for mut transform in query.iter_mut() {
         let dt = time.delta_seconds() * 0.1;
         transform.rotate_x(dt);
@@ -108,37 +108,32 @@ fn rotate_slicer(time: Res<Time>, mut query: Query<&mut Transform, With<Slicer>>
 
 fn show_slice_gizmos(
     query: Query<(&GlobalTransform, &Handle<Mesh>)>,
-    slicee_query: Query<Entity, With<Slicee>>,
-    slicer_query: Query<Entity, With<Slicer>>,
+    a_query: Query<Entity, With<SliceA>>,
+    b_query: Query<Entity, With<SliceB>>,
     output_query: Query<(Entity, &Output)>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     let instant = std::time::Instant::now();
 
-    let (slicee_transform, slicee_handle) = query.get(slicee_query.single()).unwrap();
-    let (slicer_transform, slicer_handle) = query.get(slicer_query.single()).unwrap();
+    let (a_transform, a_handle) = query.get(a_query.single()).unwrap();
+    let (b_transform, b_handle) = query.get(b_query.single()).unwrap();
 
-    let slicee_mesh = meshes.get(slicee_handle).unwrap();
-    let slicer_mesh = meshes.get(slicer_handle).unwrap();
+    let a_mesh = meshes.get(a_handle).unwrap();
+    let b_mesh = meshes.get(b_handle).unwrap();
 
-    let mut slicee_a = GIMesh::from_mesh(slicee_mesh, slicee_transform.affine()).unwrap();
-    let slicer_a = GIMesh::from_mesh(slicer_mesh, slicer_transform.affine()).unwrap();
+    let mut slicee_a = GIMesh::from_mesh(a_mesh, a_transform.affine()).unwrap();
+    let slicer_b = GIMesh::from_mesh(b_mesh, b_transform.affine()).unwrap();
+    let mut slicee_b = slicer_b.clone();
+    let slicer_a = slicee_a.clone();
 
-    let mut slicee_b = slicer_a.clone();
-    let slicer_b = slicee_a.clone();
+    slice(&mut slicee_a, &slicer_b);
+    slice(&mut slicee_b, &slicer_a);
 
-    slice(&mut slicee_a, &slicer_a);
-    slice(&mut slicee_b, &slicer_b);
+    let mut output_a = seperate(&slicee_a, &slicer_b); // seperate the triangles in `A` to inside and outside of `B`
+    let mut output_b = seperate(&slicee_b, &slicer_a); // sperate the triangles in `B` to inside and outside of `A`
 
-    let mut output_a = seperate(&slicee_a, &slicer_a);
-    let mut output_b = seperate(&slicee_b, &slicer_b);
-
-    merge_meshes(
-        &mut output_a.outside,
-        &output_a.inside,
-        &MergeSettings::default(),
-    );
+    // Merge the difference of `B` with the intersection of `A`
     merge_meshes(
         &mut output_b.outside,
         &output_a.inside,
@@ -148,15 +143,24 @@ fn show_slice_gizmos(
         },
     );
 
-    let inside_handle = meshes.add(output_b.outside.to_mesh().unwrap());
-    let outside_handle = meshes.add(output_a.outside.to_mesh().unwrap());
+    // Merge the intersection of `A` with the intersection of `B`
+    merge_meshes(
+        &mut output_a.inside,
+        &output_b.inside,
+        &MergeSettings::default(),
+    );
+
+    let handles = [
+        meshes.add(output_a.inside.to_mesh().unwrap()),
+        meshes.add(output_b.outside.to_mesh().unwrap()),
+    ];
     for (entity, output) in output_query.iter() {
+        if handles.len() <= output.index {
+            continue;
+        }
+
+        let handle = handles[output.index].clone();
         commands.entity(entity).remove::<Handle<Mesh>>();
-        let handle = if output.inside {
-            inside_handle.clone()
-        } else {
-            outside_handle.clone()
-        };
         commands.entity(entity).insert(handle);
     }
 
