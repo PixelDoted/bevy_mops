@@ -6,7 +6,7 @@ authors = ["PixelDoted"]
 documentation = "https://docs.rs/bevy_mops"
 description = "Mesh Operations library for bevy"
 repository = "https://github.com/PixelDoted/bevy_mops"
-license = "MIT or Apache-2.0"
+license = "MIT OR Apache-2.0"
 keywords = ["bevy", "3d"]
 categories = ["game-development"]
 
