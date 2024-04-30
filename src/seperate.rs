@@ -4,7 +4,7 @@ use crate::{GIMesh, Vertex};
 
 /// Seperates `a` into `inside` and `outside` of `b`
 ///
-/// NOTE: this doesn't split triangles
+/// NOTE: this doesn't slice triangles
 pub fn seperate(a: &GIMesh, b: &GIMesh) -> SeperateOutput {
     let mut output = SeperateOutput {
         inside: GIMesh {

@@ -7,6 +7,6 @@ mod vertex;
 
 pub use gimesh::GIMesh;
 pub use merge::{merge_meshes, MergeSettings};
-pub use seperate::seperate;
+pub use seperate::{seperate, SeperateOutput};
 pub use slice::slice;
 pub use vertex::Vertex;

@@ -2,7 +2,7 @@ use bevy::{
     pbr::wireframe::{Wireframe, WireframePlugin},
     prelude::*,
 };
-use bevy_mops::{merge_meshes, seperate, slice, GIMesh, MergeSettings};
+use bevy_mops::{GIMesh, MergeSettings};
 use bevy_panorbit_camera::*;
 
 fn main() {
@@ -127,15 +127,14 @@ fn show_slice_gizmos(
     let mut slicee_b = slicer_b.clone();
     let slicer_a = slicee_a.clone();
 
-    slice(&mut slicee_a, &slicer_b);
-    slice(&mut slicee_b, &slicer_a);
+    slicee_a.slice(&slicer_b);
+    slicee_b.slice(&slicer_a);
 
-    let mut output_a = seperate(&slicee_a, &slicer_b); // seperate the triangles in `A` to inside and outside of `B`
-    let mut output_b = seperate(&slicee_b, &slicer_a); // sperate the triangles in `B` to inside and outside of `A`
+    let mut output_a = slicee_a.seperate(&slicer_b); // seperate the triangles in `A` to inside and outside of `B`
+    let mut output_b = slicee_b.seperate(&slicer_a); // sperate the triangles in `B` to inside and outside of `A`
 
     // Merge the difference of `B` with the intersection of `A`
-    merge_meshes(
-        &mut output_b.outside,
+    output_b.outside.merge_with(
         &output_a.inside,
         &MergeSettings {
             invert_b_normals: true,
@@ -144,11 +143,9 @@ fn show_slice_gizmos(
     );
 
     // Merge the intersection of `A` with the intersection of `B`
-    merge_meshes(
-        &mut output_a.inside,
-        &output_b.inside,
-        &MergeSettings::default(),
-    );
+    output_a
+        .inside
+        .merge_with(&output_b.inside, &MergeSettings::default());
 
     let handles = [
         meshes.add(output_a.inside.to_mesh().unwrap()),
