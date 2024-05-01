@@ -20,6 +20,11 @@ impl GIMesh {
         self
     }
 
+    /// Returns a new [`GIMesh`] where every vertex within [`distance`] of another vertex are merged
+    pub fn merge_vertices(&self, distance: f32) -> GIMesh {
+        crate::merge_vertices(self, distance)
+    }
+
     /// Inverts the normals
     pub fn invert_normals(&mut self) -> &mut Self {
         for v in &mut self.vertices {

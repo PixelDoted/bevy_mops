@@ -26,7 +26,7 @@ impl<'a> Boolean<'a> {
             },
         );
 
-        ra.inside
+        ra.inside.merge_vertices(self.vertex_merge_distance)
     }
 
     pub fn difference(&self) -> GIMesh {
@@ -39,7 +39,7 @@ impl<'a> Boolean<'a> {
             },
         );
 
-        ra.outside
+        ra.outside.merge_vertices(self.vertex_merge_distance)
     }
 
     pub fn union(&self) -> GIMesh {
@@ -52,7 +52,7 @@ impl<'a> Boolean<'a> {
             },
         );
 
-        ra.outside
+        ra.outside.merge_vertices(self.vertex_merge_distance)
     }
 
     /// Useful for custom boolean operations

@@ -1,5 +1,35 @@
 use crate::{GIMesh, DEFAULT_VERTEX_MERGE_DISTANCE};
 
+/// Returns a new [`GIMesh`] where every vertex within [`distance`] of another vertex are merged
+pub fn merge_vertices(mesh: &GIMesh, distance: f32) -> GIMesh {
+    let dist_sqr = distance * distance;
+    let mut output = GIMesh {
+        indices: Vec::with_capacity(mesh.index_count()),
+        vertices: Vec::with_capacity(mesh.vertex_count() as usize),
+        inverse_model: mesh.inverse_model,
+    };
+
+    for ai in &mesh.indices {
+        let v = mesh.vertex(*ai);
+        let mut i = None;
+
+        for bv in 0..output.vertex_count() {
+            if v.pos.distance_squared(output.vertex(bv).pos) < dist_sqr {
+                i = Some(bv);
+                break;
+            }
+        }
+
+        if i.is_none() {
+            i = Some(output.add_vertex(v.clone()));
+        }
+
+        output.add_index(i.unwrap());
+    }
+
+    output
+}
+
 pub struct MergeSettings {
     /// Merge distance between vertices
     pub merge_distance: f32,

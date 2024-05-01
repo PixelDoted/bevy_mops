@@ -12,10 +12,10 @@ let mut a = GIMesh::from_mesh(mesh_a);
 let b = GIMesh::from_mesh(mesh_b);
 
 // slice `a` triangles by `b`
-slice(&mut a, &b);
+a.slice(&b);
 
 // seperates `a` into `inside` and `outside` of `b`
-let output = seperate(&a, &b);
+let output = a.seperate(&b);
 
 // Convert the `output` back to a "Bevy Mesh"
 let output_mesh = output.inside.to_mesh().unwrap();

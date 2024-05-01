@@ -170,9 +170,17 @@ fn show_slice_gizmos(
         .inside
         .merge_with(&output_b.inside, &MergeSettings::default());
 
+    // Cleanup duplicate vertices created by slice and seperate
+    let output_a = output_a
+        .inside
+        .merge_vertices(bevy_mops::DEFAULT_VERTEX_MERGE_DISTANCE);
+    let output_b = output_b
+        .outside
+        .merge_vertices(bevy_mops::DEFAULT_VERTEX_MERGE_DISTANCE);
+
     let handles = [
-        meshes.add(output_a.inside.to_mesh().unwrap()),
-        meshes.add(output_b.outside.to_mesh().unwrap()),
+        meshes.add(output_a.to_mesh().unwrap()),
+        meshes.add(output_b.to_mesh().unwrap()),
     ];
     for (entity, output) in output_query.iter() {
         if handles.len() <= output.index {

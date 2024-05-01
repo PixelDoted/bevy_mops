@@ -9,12 +9,12 @@ pub fn seperate(a: &GIMesh, b: &GIMesh) -> SeperateOutput {
     let mut output = SeperateOutput {
         inside: GIMesh {
             indices: Vec::with_capacity(a.index_count()),
-            vertices: Vec::with_capacity(a.vertex_count()),
+            vertices: Vec::with_capacity(a.vertex_count() as usize),
             inverse_model: a.inverse_model,
         },
         outside: GIMesh {
             indices: Vec::with_capacity(a.index_count()),
-            vertices: Vec::with_capacity(a.vertex_count()),
+            vertices: Vec::with_capacity(a.vertex_count() as usize),
             inverse_model: a.inverse_model,
         },
     };
@@ -53,6 +53,7 @@ pub fn seperate(a: &GIMesh, b: &GIMesh) -> SeperateOutput {
             &mut output.inside
         };
 
+        // FIXME: This will readd vertices already added to `mesh`
         let a = mesh.add_vertex(a_verts[0].clone());
         let b = mesh.add_vertex(a_verts[1].clone());
         let c = mesh.add_vertex(a_verts[2].clone());

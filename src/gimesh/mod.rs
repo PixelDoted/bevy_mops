@@ -33,6 +33,17 @@ impl GIMesh {
 }
 
 impl GIMesh {
+    /// Adds a vertex, unless `v` is within `dist_sqr` of another vertex
+    pub fn get_or_add_vertex(&mut self, v: Vertex, dist_sqr: f32) -> u32 {
+        for i in 0..self.vertex_count() {
+            if v.pos.distance_squared(self.vertex(i).pos) <= dist_sqr {
+                return i;
+            }
+        }
+
+        self.add_vertex(v)
+    }
+
     /// Adds a vertex to the mesh
     ///
     /// NOTE: Assumes the vertex is unique
@@ -52,8 +63,8 @@ impl GIMesh {
         &self.vertices[index as usize]
     }
 
-    pub fn vertex_count(&self) -> usize {
-        self.vertices.len()
+    pub fn vertex_count(&self) -> u32 {
+        self.vertices.len() as u32
     }
 
     pub fn add_index(&mut self, index: u32) {
