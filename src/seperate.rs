@@ -78,7 +78,7 @@ fn ray_triangle(ro: Vec3A, rv: Vec3A, tri: [&Vertex; 3]) -> bool {
     let inv_det = 1.0 / det;
     let s = ro - tri[0].pos;
     let u = inv_det * s.dot(ray_cross_e2);
-    if !(u >= 0.0 && u <= 1.0) {
+    if !(0.0..=1.0).contains(&u) {
         return false;
     }
 
